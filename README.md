@@ -49,3 +49,9 @@ Build documentation with Sphinx from inside your PHP code.
 
     You can add multiple blocks to one file.  
     But it is important that the indent of every line in one block stays the same.
+
+- Run the build script from your project root.
+    `./vendor/bin/documentation-builder {source folder} {documentation folder}`
+
+    For example  
+    `./vendor/bin/documentation-builder ./Classes ./Documentation`
