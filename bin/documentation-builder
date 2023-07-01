@@ -121,3 +121,6 @@ echo "$DockerCompose" > $DocBuilderRoot/docker-compose.yml
 
 # Run sphinx-build inside the build docker to create the documentation
 docker compose --file $DocBuilderRoot/docker-compose.yml run sphinx sphinx-build -b html /mnt/source /mnt/Documentation
+
+# Clean source folder
+test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || : 
