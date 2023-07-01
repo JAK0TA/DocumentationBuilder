@@ -1,0 +1,123 @@
+#!/bin/bash
+
+
+### Do not changs anything after this line, unless you know exactly what you are doing!!
+
+DocsSourceBuilderStartFolder="";
+
+# Check for command line arguments
+if [ ! "$1" ];then
+   echo "No start folder was given!"
+   exit 1;
+fi
+
+if [ ! "$2" ];then
+   echo "No documentation folder was given!"
+   exit 1;
+fi
+
+# Get the where the script was started from path
+FromPath=$PWD;
+
+# Check if the start folder exists relative from the start path
+if [ -d "$FromPath/$1" ]
+then
+  DocsSourceBuilderStartFolder="$FromPath/$1";
+else
+  # If not check absolute
+  if [ -d "$1" ]
+  then
+    DocsSourceBuilderStartFolder="$1";
+  else
+    echo "Start folder $1 was not found";
+    exit 1
+  fi
+fi
+
+# Check if the documentation exists relative from the start path
+if [ -d "$FromPath/$2" ]
+then
+  DocsBuildFolder="$FromPath/$2";
+else
+  # If not check absolute
+  if [ -d "$2" ]
+  then
+    DocsBuildFolder="$2";
+  else
+    echo "Documentation folder $2 was not found";
+    exit 1
+  fi
+fi
+
+DocsSourceFolder='./source';
+
+# Helper function to create a file in a source path and create folders if needed
+atouch() {
+  mkdir -p $(sed 's/\(.*\)\/.*/\1/' <<< $1) && touch $1
+}
+
+# Get the path this script is in
+ScriptPath=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )'/..'
+DocBuilderRoot=$(pushd $ScriptPath > /dev/null && pwd && popd > /dev/null)
+
+# Setup clean source folder
+test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || : 
+mkdir -p $DocBuilderRoot/$DocsSourceFolder
+cp $DocBuilderRoot/conf.py $DocBuilderRoot/$DocsSourceFolder/
+cp $DocBuilderRoot/Index.rst $DocBuilderRoot/$DocsSourceFolder/
+cp -r $DocBuilderRoot/_static $DocBuilderRoot/$DocsSourceFolder/
+cp -r $DocBuilderRoot/_templates $DocBuilderRoot/$DocsSourceFolder/
+
+TocTree='';
+# Lookup all files starting at $DocsSourceBuilderStartFolder
+for file in $DocsSourceBuilderStartFolder/**/*; do 
+
+  # Search for DocBlocks
+  OLDIFS=$IFS; IFS=';' DocBlocks=$(sed -n '/Documentation:Start/,/Documentation:End/ {/Documentation:Start/ s/^/\;/; p;}' $file);
+  for DocBlock in ${DocBlocks#;}; do 
+
+      # Get the block Indent to remove the leading * from every line
+      DocBlockStart=$(echo "$DocBlock" | grep 'Documentation:Start');
+      DocBlockIndent=$(echo "$DocBlock" | grep -bo '/\*\*' | sed 's/:.*$//');
+      DocBlockIndent="$((DocBlockIndent + 2))"
+
+      # Clean up DocBlock by removing php commend styles and cut of closing DocBlock line
+      DocBlock=$(echo "$DocBlock" | sed -r "s/^.{$DocBlockIndent}//" | sed 's/^Documentation:End*//');
+      DocBlockFile=$(echo "$DocBlock" | grep  'Documentation:Start' | sed 's/^.*Documentation:Start://' | sed 's/.rst.//');
+
+      # If TocTree: was found add file to TocTree in the root Index.rst
+      if [[ "$DocBlockFile" =~ ^TocTree:.* ]]; then
+        DocBlockFile=$(echo "$DocBlockFile" | sed 's/^TocTree://');
+        TocTree="$TocTree   $DocBlockFile"$'\n';
+      fi  
+
+      # Buld the file path for this doc block
+      DocBlockFile=$DocBuilderRoot/$DocsSourceFolder/$DocBlockFile'.rst';
+
+      # Remove Documentation:Start line from doc block
+      DocBlock=$(echo "$DocBlock"  | grep -v 'Documentation:Start');
+
+      # Create file and folders 
+      atouch $DocBlockFile
+
+      # Save doc block o dest file
+      echo $DocBlock > $DocBlockFile 
+  done; IFS=$OLDIFS 
+
+done
+
+# Write TocTree into root Index.rst
+TocTree=`sed -e '/TocTreeInsert/{r /dev/stdin' -e ';d;}' $DocBuilderRoot/$DocsSourceFolder/Index.rst <<<"$TocTree"`
+echo "$TocTree" > $DocBuilderRoot/$DocsSourceFolder/Index.rst
+
+# Prepare docker-compose.yml
+
+cp -f $DocBuilderRoot/docker-compose.template $DocBuilderRoot/docker-compose.yml
+
+DockerCompose=`sed -e '/{source}/{r /dev/stdin' -e ';d;}' $DocBuilderRoot/docker-compose.yml <<<"      - $DocBuilderRoot/$DocsSourceFolder:/mnt/source"`
+echo "$DockerCompose" > $DocBuilderRoot/docker-compose.yml
+DockerCompose=`sed -e '/{documentation}/{r /dev/stdin' -e ';d;}' $DocBuilderRoot/docker-compose.yml <<<"      - $DocsBuildFolder:/mnt/Documentation"`
+echo "$DockerCompose" > $DocBuilderRoot/docker-compose.yml
+
+# Run sphinx-build inside the build docker to create the documentation
+docker compose --file $DocBuilderRoot/docker-compose.yml run sphinx sphinx-build -b html /mnt/source /mnt/Documentation

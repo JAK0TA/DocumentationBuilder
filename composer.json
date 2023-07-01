@@ -1,0 +1,14 @@
+{
+  "name": "jakota/documentation-builder",
+  "type": "sphinx-builder",
+  "description": "Build documentation with Sphinx from inside your PHP code.",
+  "authors": [
+    {
+      "name": "Thomas Lüder",
+      "role": "Product Manager"
+    }
+  ],
+  "license": "GPL-2.0-or-later",
+  "minimum-stability": "dev",
+	"bin": ["bin/documentation-builder"]
+}
