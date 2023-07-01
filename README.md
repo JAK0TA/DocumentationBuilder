@@ -9,49 +9,67 @@ Build documentation with Sphinx from inside your PHP code.
 
 ## Detailed Usage
 
-- Add as require-dev `composer require --dev jakota/documentation-builder`
-- Create documentation folder like Documentation in the project root
-- Add documentation blocks to your php files.
+### Add as require-dev
 
-    ```text
-    <?php
+```bash
+composer require --dev jakota/documentation-builder
+```
 
-    /** Documentation:Start:TocTree:Test/Index.rst.
-    *
-    *Welcome to Your documentation!
-    *=======================================
-    *
-    *.. toctree::
-    *   :maxdepth: 2
-    *   :caption: Contents:
-    *
-    *
-    *Documentation:End
-    */
-    class DemoController {
-    ```
+### Create documentation folder like Documentation in the project root
 
-    Every line between 
+```bash
+mkdir ./Documentation
+```
 
-    ```text
-    /** Documentation:Start:TocTree:Demo/Index.rst.
-    ```
+### Add documentation blocks to your php files
 
-    and
+```php
+<?php
 
-    ```text
-    *Documentation:End
-    */
-    ```
+/** Documentation:Start:TocTree:Demo/Index.rst.
+ *
+ *Welcome to Your documentation!
+ *=======================================
+ *
+ *.. toctree::
+ *   :maxdepth: 2
+ *   :caption: Contents:
+ *
+ *
+ *Documentation:End
+ */
+class DemoController {
+```
 
-    will be coped without the leading ` *` into the the file `Demo/Index.rst`.  
-    And if `TocTree:` is set, this file will also be added to the TocTree in the root `Index.rst`.
+Every line between 
 
-    You can add multiple blocks to one file.  
-    But it is important that the indent of every line in one block stays the same.
+```text
+/** Documentation:Start:TocTree:Demo/Index.rst.
+```
 
-- Run the build script from your project root.
-    `./vendor/bin/documentation-builder {source folder} {documentation folder}`
+and
 
-    For example  
-    `./vendor/bin/documentation-builder ./Classes ./Documentation`
+```text
+ *Documentation:End
+ */
+```
+
+will be coped without the leading `*` into the file `Demo/Index.rst`.  
+And if `TocTree:` is set, this file will also be added to the TocTree in the root `Index.rst`.
+
+You can add multiple blocks to one file.  
+But it is important that the indent of every line in one block stays the same.
+
+### Run the build script from your project root
+
+```bash
+./vendor/bin/documentation-builder {source-folder} {documentation-folder}
+```
+
+For example:  
+
+```bash
+./vendor/bin/documentation-builder ./Classes ./Documentation
+```
+
+## Happy documenting :)
