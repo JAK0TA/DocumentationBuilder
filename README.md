@@ -55,8 +55,8 @@ Next you want to add more DocBlocks to your PHP code.
 
 /** Documentation:Start:TocTree:Demo/Index.rst.
  *
- *Welcome to Your documentation!
- *=======================================
+ *Demo Class with cool new features
+ *=================================
  *
  *.. toctree::
  *   :maxdepth: 2
@@ -68,7 +68,7 @@ Next you want to add more DocBlocks to your PHP code.
 class DemoController {
 ```
 
-Every line between 
+Every line between
 
 ```text
 /** Documentation:Start:TocTree:Demo/Index.rst.
@@ -82,10 +82,10 @@ and
 ```
 
 will be coped without the leading `*` into the file `Demo/Index.rst`.  
-And if `TocTree:` is set, this file will also be added to the TocTree in the root `Index.rst`.
+And if `TocTree:` is set, this file will also be added to the TocTree in the main `Index.rst`.
 
-You can add multiple blocks to one file.  
-But it is important that the indent of every line in one block stays the same.
+You can add multiple DocBlocks wherever you want  to one file.  
+But it is important that the indent of every line stays the same per DocBlock.
 
 ### Run the build script from your project root
 
