@@ -64,7 +64,6 @@ DocBuilderRoot=$(pushd $ScriptPath > /dev/null && pwd && popd > /dev/null)
 test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || : 
 mkdir -p $DocBuilderRoot/$DocsSourceFolder
 cp $DocBuilderRoot/conf.py $DocBuilderRoot/$DocsSourceFolder/
-cp $DocBuilderRoot/Index.rst $DocBuilderRoot/$DocsSourceFolder/
 cp -r $DocBuilderRoot/_static $DocBuilderRoot/$DocsSourceFolder/
 cp -r $DocBuilderRoot/_templates $DocBuilderRoot/$DocsSourceFolder/
 
