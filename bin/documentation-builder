@@ -128,16 +128,22 @@ for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
 
     # Clean up DocBlock by removing php commend styles and cut of closing DocBlock line
     DocBlock=$(echo "$DocBlock" | sed -r "s/^.{$DocBlockIndent}//" | sed 's/^Documentation:End*//');
-    DocBlockFile=$(echo "$DocBlock" | grep  'Documentation:Start' | sed 's/^.*Documentation:Start://' | sed 's/.rst.//');
+    DocBlockPath=$(echo "$DocBlock" | grep  'Documentation:Start' | sed 's/^.*Documentation:Start://');
 
     # If TocTree: was found add file to TocTree in the root Index.rst
-    if [[ "$DocBlockFile" =~ ^TocTree:.* ]]; then
-      DocBlockFile=$(echo "$DocBlockFile" | sed 's/^TocTree://');
-      TocTree+=("$DocBlockFile");
+    if [[ "$DocBlockPath" =~ ^TocTree:.* ]]; then
+      DocBlockTocTreeFile=$(echo "$DocBlockPath" | sed 's/^TocTree://' | sed 's/.rst.*//');
+      TocTree+=("$DocBlockTocTreeFile");
     fi
 
-    # Buld the file path for this doc block
-    DocBlockFile=$DocBuilderRoot/$DocsSourceFolder/$DocBlockFile'.rst';
+    # Clean up DocBlockFile name
+    DocBlockFile=$( echo "$DocBlockPath" | sed 's/^TocTree://' )
+    if [[ ${DocBlockFile:(-1)} == '.' ]]; then
+      DocBlockFile=$( echo "$DocBlockFile" | sed 's/.\{1\}$//')
+    fi
+
+    # Build the file path for this doc block
+    DocBlockFile=$DocBuilderRoot/$DocsSourceFolder/$DocBlockFile;
 
     # Remove Documentation:Start line from doc block
     DocBlock=$(echo "$DocBlock"  | grep -v 'Documentation:Start');
