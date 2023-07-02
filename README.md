@@ -87,16 +87,38 @@ And if `TocTree:` is set, this file will also be added to the TocTree in the mai
 You can add multiple DocBlocks wherever you want  to one file.  
 But it is important that the indent of every line stays the same per DocBlock.
 
+### Config JSON
+
+Create a config json your project root and name it whatever you like.  
+
+The content of this config file looks like this:
+
+```text
+{
+  "StartFolder": "Classes",
+  "DocumentationFolder": "Documentation",
+  "DocumentationType": "html",
+  "Project": "Your Awesome Project Name",
+  "Copyright": "2023, Your company or Name",
+  "Author": "Your company or Name",
+  "Release": "1.2.3"
+}
+```
+
+Again, you can edit the config to your liking.  
+But for now only `html` is supported as `DocumentationType`.  
+You will see an error message if the config is not as expected.
+
 ### Run the build script from your project root
 
 ```bash
-./vendor/bin/documentation-builder {source-folder} {documentation-folder}
+./vendor/bin/documentation-builder {the-path-and-file-name-of-your-config.json}
 ```
 
 For example:  
 
 ```bash
-./vendor/bin/documentation-builder ./Classes ./Documentation
+./vendor/bin/documentation-builder ./documentation.json
 ```
 
 ## Happy documenting :)

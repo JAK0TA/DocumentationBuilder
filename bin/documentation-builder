@@ -7,44 +7,90 @@ DocsSourceBuilderStartFolder="";
 
 # Check for command line arguments
 if [ ! "$1" ];then
-   echo "No start folder was given!"
-   exit 1;
-fi
-
-if [ ! "$2" ];then
-   echo "No documentation folder was given!"
+   echo "No config json file was given!"
    exit 1;
 fi
 
 # Get the where the script was started from path
 FromPath=$PWD;
 
-# Check if the start folder exists relative from the start path
-if [ -d "$FromPath/$1" ]
+if [ ! -f "$FromPath/$1" ]; then
+  printf "\n -> DocBuild canceled, config json does not exist.\n\n\n"
+
+  exit 1;
+fi
+
+# Check if all parameter in config json are set
+ConfigChecks="OK"
+StartFolder=$(sed -n 's/.*\"StartFolder\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+if [ -z "$StartFolder" ]
 then
-  DocsSourceBuilderStartFolder="$FromPath/$1";
+  printf "\n -> DocBuild canceled: Start folder was not found in config json\n\n\n"
+  ConfigChecks="FALSE"
+fi
+DocumentationFolder=$(sed -n 's/.*\"DocumentationFolder\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+if [ -z "$DocumentationFolder" ]
+then
+  printf "\n -> DocBuild canceled: Documentation folder was not found in config json\n\n\n"
+  ConfigChecks="FALSE"
+fi
+DocumentationType=$(sed -n 's/.*\"DocumentationType\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+if [ -z "$DocumentationType" ]
+then
+  printf "\n -> DocBuild canceled: Documentation type was not found in config json\n\n\n"
+  ConfigChecks="FALSE"
+fi
+Project=$(sed -n 's/.*\"Project\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+if [ -z "$Project" ]
+then
+  printf "\n -> DocBuild canceled: Project was not found in config json\n\n\n"
+  ConfigChecks="FALSE"
+fi
+Copyright=$(sed -n 's/.*\"Copyright\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+if [ -z "$Copyright" ]
+then
+  printf "\n -> DocBuild canceled: Copyright was not found in config json\n\n\n"
+  ConfigChecks="FALSE"
+fi
+Author=$(sed -n 's/.*\"Author\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+if [ -z "$Author" ]
+then
+  printf "\n -> DocBuild canceled: Author was not found in config json\n\n\n"
+  ConfigChecks="FALSE"
+fi
+Release=$(sed -n 's/.*\"Release\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+if [ -z "$Author" ]
+then
+  printf "\n -> DocBuild canceled: Release was not found in config json\n\n\n"
+  ConfigChecks="FALSE"
+fi
+
+# Check if the start folder exists relative from the start path
+if [ -d "$FromPath/$StartFolder" ]
+then
+  DocsSourceBuilderStartFolder="$FromPath/$StartFolder";
 else
   # If not check absolute
-  if [ -d "$1" ]
+  if [ -d "$StartFolder" ]
   then
-    DocsSourceBuilderStartFolder="$1";
+    DocsSourceBuilderStartFolder="$StartFolder";
   else
-    echo "Start folder $1 was not found";
+    echo "Start folder $StartFolder was not found";
     exit 1
   fi
 fi
 
 # Check if the documentation exists relative from the start path
-if [ -d "$FromPath/$2" ]
+if [ -d "$FromPath/$DocumentationFolder" ]
 then
-  DocsBuildFolder="$FromPath/$2";
+  DocsBuildFolder="$FromPath/$DocumentationFolder";
 else
   # If not check absolute
-  if [ -d "$2" ]
+  if [ -d "$DocumentationFolder" ]
   then
-    DocsBuildFolder="$2";
+    DocsBuildFolder="$DocumentationFolder";
   else
-    echo "Documentation folder $2 was not found";
+    echo "Documentation folder $DocumentationFolder was not found";
     exit 1
   fi
 fi
@@ -63,7 +109,6 @@ DocBuilderRoot=$(pushd $ScriptPath > /dev/null && pwd && popd > /dev/null)
 # Setup clean source folder
 test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || : 
 mkdir -p $DocBuilderRoot/$DocsSourceFolder
-cp $DocBuilderRoot/conf.py $DocBuilderRoot/$DocsSourceFolder/
 cp -r $DocBuilderRoot/_static $DocBuilderRoot/$DocsSourceFolder/
 cp -r $DocBuilderRoot/_templates $DocBuilderRoot/$DocsSourceFolder/
 
@@ -109,17 +154,29 @@ done
 TocTree=`sed -e '/TocTreeInsert/{r /dev/stdin' -e ';d;}' $DocBuilderRoot/$DocsSourceFolder/Index.rst <<<"$TocTree"`
 echo "$TocTree" > $DocBuilderRoot/$DocsSourceFolder/Index.rst
 
+# Prepare conf.py
+
+cp $DocBuilderRoot/conf.template $DocBuilderRoot/$DocsSourceFolder/conf.py
+
+ConfPy=$(<$DocBuilderRoot/$DocsSourceFolder/conf.py)
+ConfPy="${ConfPy//\$\{project\}/$Project}"
+ConfPy="${ConfPy//\$\{copyright\}/$Copyright}"
+ConfPy="${ConfPy//\$\{author\}/$Author}"
+ConfPy="${ConfPy//\$\{release\}/$Release}"
+echo "$ConfPy" > "$DocBuilderRoot/$DocsSourceFolder/conf.py"
+
 # Prepare docker-compose.yml
 
 cp -f $DocBuilderRoot/docker-compose.template $DocBuilderRoot/docker-compose.yml
 
-DockerCompose=`sed -e '/{source}/{r /dev/stdin' -e ';d;}' $DocBuilderRoot/docker-compose.yml <<<"      - $DocBuilderRoot/$DocsSourceFolder:/mnt/source"`
-echo "$DockerCompose" > $DocBuilderRoot/docker-compose.yml
-DockerCompose=`sed -e '/{documentation}/{r /dev/stdin' -e ';d;}' $DocBuilderRoot/docker-compose.yml <<<"      - $DocsBuildFolder:/mnt/Documentation"`
-echo "$DockerCompose" > $DocBuilderRoot/docker-compose.yml
+DockerCompose=$(<$DocBuilderRoot/docker-compose.yml)
+DockerCompose="${DockerCompose//\$\{source\}/$DocBuilderRoot/$DocsSourceFolder}"
+DockerCompose="${DockerCompose//\$\{documentation\}/$DocsBuildFolder}"
+echo "$DockerCompose" > "$DocBuilderRoot/docker-compose.yml"
 
 # Run sphinx-build inside the build docker to create the documentation
 docker compose --file $DocBuilderRoot/docker-compose.yml run sphinx sphinx-build -b html /mnt/source /mnt/Documentation
 
-# Clean source folder
+# Clean up after yourself!
 test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || : 
+test -f $DocBuilderRoot/docker-compose.yml && rm -f $DocBuilderRoot/docker-compose.yml || : 

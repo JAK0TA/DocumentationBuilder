@@ -6,10 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Formhandler'
-copyright = '2023, JAKOTA Design Group GmbH'
-author = 'JAKOTA Design Group GmbH'
-release = '9.0.0'
+project = '${project}'
+copyright = '${copyright}'
+author = '${author}'
+release = '${release}'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

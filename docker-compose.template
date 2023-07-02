@@ -9,5 +9,5 @@ services:
       context: './'
     hostname: sphinx-build
     volumes:
-      - {source}:/mnt/source
-      - {documentation}:/mnt/Documentation
+      - ${source}:/mnt/source
+      - ${documentation}:/mnt/Documentation
