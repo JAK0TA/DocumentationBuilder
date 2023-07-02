@@ -112,7 +112,9 @@ mkdir -p $DocBuilderRoot/$DocsSourceFolder
 cp -r $DocBuilderRoot/_static $DocBuilderRoot/$DocsSourceFolder/
 cp -r $DocBuilderRoot/_templates $DocBuilderRoot/$DocsSourceFolder/
 
-TocTree='';
+declare -a TocTree=();
+
+
 # Lookup all files starting at $DocsSourceBuilderStartFolder
 for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
 
@@ -132,7 +134,7 @@ for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
       # If TocTree: was found add file to TocTree in the root Index.rst
       if [[ "$DocBlockFile" =~ ^TocTree:.* ]]; then
         DocBlockFile=$(echo "$DocBlockFile" | sed 's/^TocTree://');
-        TocTree="$TocTree   $DocBlockFile"$'\n';
+        TocTree+=("$DocBlockFile");
       fi  
 
       # Buld the file path for this doc block
@@ -150,9 +152,21 @@ for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
 
 done
 
+# Sort TocTree alphabetically
+IFS=$'\n' TocTree=($(sort <<<"${TocTree[*]}"))
+unset IFS
+
+TocTreeInsert='';
+for TocTreeItem in "${TocTree[@]}"
+do
+  TocTreeInsert="$TocTreeInsert   $TocTreeItem"$'\n';
+   # or do whatever with individual element of the array
+done
+
 # Write TocTree into root Index.rst
-TocTree=`sed -e '/TocTreeInsert/{r /dev/stdin' -e ';d;}' $DocBuilderRoot/$DocsSourceFolder/Index.rst <<<"$TocTree"`
-echo "$TocTree" > $DocBuilderRoot/$DocsSourceFolder/Index.rst
+RootIndex=$(<$DocBuilderRoot/$DocsSourceFolder/Index.rst)
+RootIndex="${RootIndex//\TocTreeInsert/$TocTreeInsert}"
+echo "$RootIndex" > "$DocBuilderRoot/$DocsSourceFolder/Index.rst"
 
 # Prepare conf.py
 
