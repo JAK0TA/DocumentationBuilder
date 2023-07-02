@@ -22,44 +22,45 @@ fi
 
 # Check if all parameter in config json are set
 ConfigChecks="OK"
-StartFolder=$(sed -n 's/.*\"StartFolder\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+ConfigFile=$(<$FromPath/$1)
+StartFolder=$( echo "$ConfigFile" | sed -n 's/.*\"StartFolder\".*:.*\"\(.*\)\".*/\1/p' )
 if [ -z "$StartFolder" ]
 then
   printf "\n -> DocBuild canceled: Start folder was not found in config json\n\n\n"
   ConfigChecks="FALSE"
 fi
-DocumentationFolder=$(sed -n 's/.*\"DocumentationFolder\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+DocumentationFolder=$( echo "$ConfigFile" | sed -n 's/.*\"DocumentationFolder\".*:.*\"\(.*\)\".*/\1/p' )
 if [ -z "$DocumentationFolder" ]
 then
   printf "\n -> DocBuild canceled: Documentation folder was not found in config json\n\n\n"
   ConfigChecks="FALSE"
 fi
-DocumentationType=$(sed -n 's/.*\"DocumentationType\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+DocumentationType=$( echo "$ConfigFile" | sed -n 's/.*\"DocumentationType\".*:.*\"\(.*\)\".*/\1/p' )
 if [ -z "$DocumentationType" ]
 then
   printf "\n -> DocBuild canceled: Documentation type was not found in config json\n\n\n"
   ConfigChecks="FALSE"
 fi
-Project=$(sed -n 's/.*\"Project\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+Project=$( echo "$ConfigFile" | sed -n 's/.*\"Project\".*:.*\"\(.*\)\".*/\1/p' )
 if [ -z "$Project" ]
 then
   printf "\n -> DocBuild canceled: Project was not found in config json\n\n\n"
   ConfigChecks="FALSE"
 fi
-Copyright=$(sed -n 's/.*\"Copyright\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+Copyright=$( echo "$ConfigFile" | sed -n 's/.*\"Copyright\".*:.*\"\(.*\)\".*/\1/p' )
 if [ -z "$Copyright" ]
 then
   printf "\n -> DocBuild canceled: Copyright was not found in config json\n\n\n"
   ConfigChecks="FALSE"
 fi
-Author=$(sed -n 's/.*\"Author\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
+Author=$( echo "$ConfigFile" | sed -n 's/.*\"Author\".*:.*\"\(.*\)\".*/\1/p' )
 if [ -z "$Author" ]
 then
   printf "\n -> DocBuild canceled: Author was not found in config json\n\n\n"
   ConfigChecks="FALSE"
 fi
-Release=$(sed -n 's/.*\"Release\".*:.*\"\(.*\)\".*/\1/p' $FromPath/$1)
-if [ -z "$Author" ]
+Release=$( echo "$ConfigFile" | sed -n 's/.*\"Release\".*:.*\"\(.*\)\".*/\1/p' )
+if [ -z "$Release" ]
 then
   printf "\n -> DocBuild canceled: Release was not found in config json\n\n\n"
   ConfigChecks="FALSE"
