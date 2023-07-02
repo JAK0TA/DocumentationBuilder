@@ -75,6 +75,13 @@ if [ ! -z "$StaticFolder" ]; then
     exit 1;
   fi
 fi
+Favicon=$( echo "$ConfigFile" | sed -n 's/.*\"Favicon\".*:.*\"\(.*\)\".*/\1/p' )
+if [ ! -z "$Favicon" ]; then
+  if [ -z "$StaticFolder" ]; then
+    printf "\n -> DocBuild canceled: StaticFolder was not found in config json but Favicon is set.\n\n\n"
+    ConfigChecks="FALSE"
+  fi
+fi
 
 TemplatesFolder=$( echo "$ConfigFile" | sed -n 's/.*\"TemplatesFolder\".*:.*\"\(.*\)\".*/\1/p' )
 if [ ! -z "$TemplatesFolder" ]; then
@@ -208,6 +215,7 @@ ConfPy="${ConfPy//\$\{project\}/$Project}"
 ConfPy="${ConfPy//\$\{copyright\}/$Copyright}"
 ConfPy="${ConfPy//\$\{author\}/$Author}"
 ConfPy="${ConfPy//\$\{release\}/$Release}"
+ConfPy="${ConfPy//\$\{favicon\}/$Favicon}"
 echo "$ConfPy" > "$DocBuilderRoot/$DocsSourceFolder/conf.py"
 
 # Prepare docker-compose.yml
