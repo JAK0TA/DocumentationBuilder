@@ -107,13 +107,12 @@ ScriptPath=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )'
 DocBuilderRoot=$(pushd $ScriptPath > /dev/null && pwd && popd > /dev/null)
 
 # Setup clean source folder
-test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || : 
+test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || :
 mkdir -p $DocBuilderRoot/$DocsSourceFolder
 cp -r $DocBuilderRoot/_static $DocBuilderRoot/$DocsSourceFolder/
 cp -r $DocBuilderRoot/_templates $DocBuilderRoot/$DocsSourceFolder/
 
 declare -a TocTree=();
-
 
 # Lookup all files starting at $DocsSourceBuilderStartFolder
 for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
@@ -122,33 +121,33 @@ for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
   OLDIFS=$IFS; IFS=';' DocBlocks=$(sed -n '/Documentation:Start/,/Documentation:End/ {/Documentation:Start/ s/^/\;/; p;}' $file);
   for DocBlock in ${DocBlocks#;}; do 
 
-      # Get the block Indent to remove the leading * from every line
-      DocBlockStart=$(echo "$DocBlock" | grep 'Documentation:Start');
-      DocBlockIndent=$(echo "$DocBlock" | grep -bo '/\*\*' | sed 's/:.*$//');
-      DocBlockIndent="$((DocBlockIndent + 2))"
+    # Get the block Indent to remove the leading * from every line
+    DocBlockStart=$(echo "$DocBlock" | grep 'Documentation:Start');
+    DocBlockIndent=$(echo "$DocBlock" | grep -bo '/\*\*' | sed 's/:.*$//');
+    DocBlockIndent="$((DocBlockIndent + 2))"
 
-      # Clean up DocBlock by removing php commend styles and cut of closing DocBlock line
-      DocBlock=$(echo "$DocBlock" | sed -r "s/^.{$DocBlockIndent}//" | sed 's/^Documentation:End*//');
-      DocBlockFile=$(echo "$DocBlock" | grep  'Documentation:Start' | sed 's/^.*Documentation:Start://' | sed 's/.rst.//');
+    # Clean up DocBlock by removing php commend styles and cut of closing DocBlock line
+    DocBlock=$(echo "$DocBlock" | sed -r "s/^.{$DocBlockIndent}//" | sed 's/^Documentation:End*//');
+    DocBlockFile=$(echo "$DocBlock" | grep  'Documentation:Start' | sed 's/^.*Documentation:Start://' | sed 's/.rst.//');
 
-      # If TocTree: was found add file to TocTree in the root Index.rst
-      if [[ "$DocBlockFile" =~ ^TocTree:.* ]]; then
-        DocBlockFile=$(echo "$DocBlockFile" | sed 's/^TocTree://');
-        TocTree+=("$DocBlockFile");
-      fi  
+    # If TocTree: was found add file to TocTree in the root Index.rst
+    if [[ "$DocBlockFile" =~ ^TocTree:.* ]]; then
+      DocBlockFile=$(echo "$DocBlockFile" | sed 's/^TocTree://');
+      TocTree+=("$DocBlockFile");
+    fi
 
-      # Buld the file path for this doc block
-      DocBlockFile=$DocBuilderRoot/$DocsSourceFolder/$DocBlockFile'.rst';
+    # Buld the file path for this doc block
+    DocBlockFile=$DocBuilderRoot/$DocsSourceFolder/$DocBlockFile'.rst';
 
-      # Remove Documentation:Start line from doc block
-      DocBlock=$(echo "$DocBlock"  | grep -v 'Documentation:Start');
+    # Remove Documentation:Start line from doc block
+    DocBlock=$(echo "$DocBlock"  | grep -v 'Documentation:Start');
 
-      # Create file and folders 
-      atouch $DocBlockFile
+    # Create file and folders
+    atouch $DocBlockFile
 
-      # Save doc block o dest file
-      echo $DocBlock > $DocBlockFile 
-  done; IFS=$OLDIFS 
+    # Save doc block o dest file
+    echo $DocBlock > $DocBlockFile
+  done; IFS=$OLDIFS
 
 done
 
@@ -195,5 +194,5 @@ find "$DocsBuildFolder" -mindepth 1 -delete
 docker compose --file $DocBuilderRoot/docker-compose.yml run sphinx sphinx-build -b html /mnt/source /mnt/Documentation
 
 # Clean up after yourself!
-test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || : 
-test -f $DocBuilderRoot/docker-compose.yml && rm -f $DocBuilderRoot/docker-compose.yml || : 
+test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || :
+test -f $DocBuilderRoot/docker-compose.yml && rm -f $DocBuilderRoot/docker-compose.yml || :
