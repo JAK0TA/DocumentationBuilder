@@ -69,7 +69,7 @@ cp -r $DocBuilderRoot/_templates $DocBuilderRoot/$DocsSourceFolder/
 
 TocTree='';
 # Lookup all files starting at $DocsSourceBuilderStartFolder
-for file in $DocsSourceBuilderStartFolder/**/*; do 
+for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
 
   # Search for DocBlocks
   OLDIFS=$IFS; IFS=';' DocBlocks=$(sed -n '/Documentation:Start/,/Documentation:End/ {/Documentation:Start/ s/^/\;/; p;}' $file);
