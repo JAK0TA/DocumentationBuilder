@@ -89,21 +89,38 @@ But it is important that the indent of every line stays the same per DocBlock.
 
 ### Config JSON
 
-Create a config json your project root and name it whatever you like.  
+Create a folder for the config json and static files in your project root and name them whatever you like.  
 
-The content of this config file looks like this:
+A recommended folder structure looks like this:
+
+```text
+--- Project-Root
+ |--- .documentation        // folder for the config
+ | |- _static               // folder for the static content like images
+ | |- _templates            // folder for templates
+ | |- documentation.json    // config json
+ |- Documentation           // folder for the finished documentation
+```
+
+The content of this documentation.json file looks like this:
 
 ```text
 {
   "StartFolder": "Classes",
   "DocumentationFolder": "Documentation",
   "DocumentationType": "html",
+  "Favicon": "_static/favicon.svg",
   "Project": "Your Awesome Project Name",
   "Copyright": "2023, Your company or Name",
   "Author": "Your company or Name",
-  "Release": "1.2.3"
+  "Release": "1.2.3",
+  "StaticFolder": "_static",
+  "TemplatesFolder": ""
 }
 ```
+
+StartFolder and DocumentationFolder are relative to the Project-Root.  
+StaticFolder and TemplatesFolder are relative to the folder for the config.  
 
 Again, you can edit the config to your liking.  
 But for now only `html` is supported as `DocumentationType`.  
@@ -118,7 +135,7 @@ You will see an error message if the config is not as expected.
 For example:  
 
 ```bash
-./vendor/bin/documentation-builder ./documentation.json
+./vendor/bin/documentation-builder .documentation/documentation.json
 ```
 
 ## Happy documenting :)
