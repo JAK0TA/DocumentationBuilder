@@ -23,6 +23,8 @@ fi
 # Check if all parameter in config json are set
 ConfigChecks="OK"
 ConfigFile=$(<$FromPath/$1)
+ConfigPath=$(dirname $FromPath/$1);
+
 StartFolder=$( echo "$ConfigFile" | sed -n 's/.*\"StartFolder\".*:.*\"\(.*\)\".*/\1/p' )
 if [ -z "$StartFolder" ]
 then
@@ -64,6 +66,23 @@ if [ -z "$Release" ]
 then
   printf "\n -> DocBuild canceled: Release was not found in config json\n\n\n"
   ConfigChecks="FALSE"
+fi
+StaticFolder=$( echo "$ConfigFile" | sed -n 's/.*\"StaticFolder\".*:.*\"\(.*\)\".*/\1/p' )
+if [ ! -z "$StaticFolder" ]; then
+  if [ ! -d "$ConfigPath/$StaticFolder" ]; then
+    printf "\n -> DocBuild canceled, StaticFolder $ConfigPath/$StaticFolder from config json does not exist.\n\n\n"
+
+    exit 1;
+  fi
+fi
+
+TemplatesFolder=$( echo "$ConfigFile" | sed -n 's/.*\"TemplatesFolder\".*:.*\"\(.*\)\".*/\1/p' )
+if [ ! -z "$TemplatesFolder" ]; then
+  if [ ! -d "$ConfigPath/$TemplatesFolder" ]; then
+    printf "\n -> DocBuild canceled, TemplatesFolder $ConfigPath/$TemplatesFolder from config json does not exist.\n\n\n"
+
+    exit 1;
+  fi
 fi
 
 # Check if the start folder exists relative from the start path
@@ -112,6 +131,12 @@ test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceF
 mkdir -p $DocBuilderRoot/$DocsSourceFolder
 cp -r $DocBuilderRoot/_static $DocBuilderRoot/$DocsSourceFolder/
 cp -r $DocBuilderRoot/_templates $DocBuilderRoot/$DocsSourceFolder/
+if [ ! -z "$StaticFolder" ]; then
+  cp -r $ConfigPath/$StaticFolder/ $DocBuilderRoot/$DocsSourceFolder/_static
+fi
+if [ ! -z "$TemplatesFolder" ]; then
+  cp -r $ConfigPath/$TemplatesFolder/ $DocBuilderRoot/$DocsSourceFolder/_templates
+fi
 
 declare -a TocTree=();
 
