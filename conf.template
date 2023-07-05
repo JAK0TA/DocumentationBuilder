@@ -17,7 +17,10 @@ html_favicon = '${favicon}'
 
 root_doc = 'Index'
 
-extensions = ["sphinxcontrib.phpdomain"]
+extensions = [
+  "sphinxcontrib.phpdomain",
+  "sphinxcontrib.jquery"
+]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
