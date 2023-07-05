@@ -218,20 +218,20 @@ ConfPy="${ConfPy//\$\{release\}/$Release}"
 ConfPy="${ConfPy//\$\{favicon\}/$Favicon}"
 echo "$ConfPy" > "$DocBuilderRoot/$DocsSourceFolder/conf.py"
 
-# Prepare docker-compose.yml
-
-cp -f $DocBuilderRoot/docker-compose.template $DocBuilderRoot/docker-compose.yml
-
-DockerCompose=$(<$DocBuilderRoot/docker-compose.yml)
-DockerCompose="${DockerCompose//\$\{source\}/$DocBuilderRoot/$DocsSourceFolder}"
-DockerCompose="${DockerCompose//\$\{documentation\}/$DocsBuildFolder}"
-echo "$DockerCompose" > "$DocBuilderRoot/docker-compose.yml"
-
 # Clean up documentation folder before build
 find "$DocsBuildFolder" -mindepth 1 -delete
 
+# Check if image is buld
+docker image ls | grep -q "sphinx-build" && dockerFound="true" || dockerFound="false";
+
+if (! $dockerFound == "true"); then
+  docker build --tag sphinx-build $DocBuilderRoot
+fi
+
 # Run sphinx-build inside the build docker to create the documentation
-docker compose --file $DocBuilderRoot/docker-compose.yml run sphinx sphinx-build -b html /mnt/source /mnt/Documentation
+docker container run --name sphinx-build -it -v $DocBuilderRoot/$DocsSourceFolder:/mnt/source -v $DocsBuildFolder:/mnt/Documentation sphinx-build sphinx-build -b html /mnt/source /mnt/Documentation
+# Remove build container
+docker container rm sphinx-build
 
 # Clean up after yourself!
 test -d $DocBuilderRoot/$DocsSourceFolder && rm -rf $DocBuilderRoot/$DocsSourceFolder || :
