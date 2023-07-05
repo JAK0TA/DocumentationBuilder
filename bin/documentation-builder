@@ -185,9 +185,8 @@ for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
     atouch $DocBlockFile
 
     # Save doc block o dest file
-    echo $DocBlock > $DocBlockFile
+    echo "$DocBlock" > $DocBlockFile
   done; IFS=$OLDIFS
-
 done
 
 # Sort TocTree alphabetically
