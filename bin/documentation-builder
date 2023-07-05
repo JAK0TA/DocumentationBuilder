@@ -146,13 +146,18 @@ if [ ! -z "$TemplatesFolder" ]; then
 fi
 
 declare -a TocTree=();
+SemicolonPlaceholder="@@-@-@-@@";
 
 # Lookup all files starting at $DocsSourceBuilderStartFolder
 for file in `find $DocsSourceBuilderStartFolder -name "*.php" -type f`; do
 
+  # Semicolon if used as DocBlock delimiter so it must be replaced in this step to not cause interference.
   # Search for DocBlocks
-  OLDIFS=$IFS; IFS=';' DocBlocks=$(sed -n '/Documentation:Start/,/Documentation:End/ {/Documentation:Start/ s/^/\;/; p;}' $file);
+  OLDIFS=$IFS; IFS=';' DocBlocks=$(sed "s/\;/$SemicolonPlaceholder/g" $file | sed -n '/Documentation:Start/,/Documentation:End/ {/Documentation:Start/ s/^/\;/; p;}' );
   for DocBlock in ${DocBlocks#;}; do 
+
+    # Turn SemicolonPlaceholder back to Semicolon
+    DocBlock="$(echo "$DocBlock" | sed "s/$SemicolonPlaceholder/\;/g")"
 
     # Get the block Indent to remove the leading * from every line
     DocBlockStart=$(echo "$DocBlock" | grep 'Documentation:Start');
